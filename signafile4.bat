@@ -1,8 +1,8 @@
-::              This batch script will digitally sign the filename referenced by the deliberately misspelled verisign "timstamp.dll".  Take notice of the spell error, this prevents us from getting the error message we can expect, since
+:: This batch script will digitally sign the filename referenced by the deliberately misspelled verisign "timstamp.dll".  Take notice of the spell error, this prevents us from getting the error message we can expect, since
 :: we issue as an individual who is not a part of the chained trustees, it would otherwise prevent us from being able to sign it at all. Now it will sign the referenced file and add a notification
 :: we were unable to reach the server, but we did sign the file. If we would attempt to get through the verification like this, we would ofcourse fail and the server will notice our attempt and consequently send us back
 :: to where we came from, starting point zero. in this case however, microsoft will notice our efford to sign a file and won't leave us entirely empty handed.
-:: 
+:: It will only show a warning but not an error.
 ::
 :: Windows will still treat our file as being unsigned, until we complete all steps successfully. For now however it was my goal to make signing a file easier to do and understand.
 :: The last step necessary to sign the file and succesfully verify it just falls beyond the scope of my post since I'm not a professional
@@ -27,6 +27,7 @@
 @ECHO OFF
 
 :RequiredfilesPresent
+:: Check whether the required binaries are present, oterwise we can't start
 if exist "makecert.exe" if exist "cert2spc.exe" if exist "pvk2pfx.exe"  if exist "signtool.exe"  if exist "capicom.dll" GOTO :IsDirEmpty
 ECHO."A required file is missing, cannot continue" 
 pause 
@@ -36,6 +37,7 @@ EXIT
 
 :IsDirEmpty
 ECHO."All Required files are present, continue execution"
+:: To avoid problems make sure that the files we are about the create aren't yet present.
 if not exist "CertificateFile.cer"  if not exist "CertificateFile.pkv"  if not exist "CertificateFile.spc"  if not exist "PrivateKeyFile.pfx" GOTO :trySign
 ECHO. "Directory is not empty.Delete previously created signing files and try again, cannot continue" 
 Pause 
@@ -44,6 +46,7 @@ EXIT
 
 :trySign
 ECHO."Directory is clean, continue execution"
+:: Required files are present and none of the about to create files are present, let's go
 makecert.exe CertificateFile.cer -r -n "CN= Public Domain " -$ individual -sv PrivateKeyFile.pkv -pe -eku 1.3.6.1.5.5.7.3.3
 pause
 :: succeeded unless it fails to create the files because they were already present or missing
